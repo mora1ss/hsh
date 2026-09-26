@@ -52,13 +52,14 @@ install_wallpapers() {
     local full_pack="${1:-true}"
     local wallpaper_dir
     wallpaper_dir=$(get_wallpaper_dir)
-    local wallpaper_repo="https://github.com/ilyamiro/shell-wallpapers.git"
-    local clone_dir="${XDG_CACHE_HOME:-"$HOME/.cache"}/serpantinum-wallpapers"
+    local wallpaper_repo="https://github.com/mora1ss/shell-wallpapers.git"
+    local clone_dir="${XDG_CACHE_HOME:-"$HOME/.cache"}/hsh-wallpapers"
 
     mkdir -p "$wallpaper_dir"
 
     local sync_success=false
     if [ -d "$clone_dir/.git" ]; then
+        git -C "$clone_dir" remote set-url origin "$wallpaper_repo" 2>/dev/null || true
         if git -C "$clone_dir" fetch --depth 1 origin 2>/dev/null; then
             if git -C "$clone_dir" reset --hard FETCH_HEAD 2>/dev/null || \
                git -C "$clone_dir" reset --hard origin/HEAD 2>/dev/null || \
@@ -249,7 +250,7 @@ deploy_package() {
     shift 5
     local COMPOSITORS=("$@")
 
-    local TARGET_BASE="$HOME/.local/share/serpantinum"
+    local TARGET_BASE="$HOME/.local/share/hsh"
     local BIN_DIR="$HOME/.local/bin"
 
     local is_update=false
@@ -432,13 +433,13 @@ deploy_package() {
         fi
     fi
 
-    if [ -f "$TARGET_BASE/bin/serpantinum" ]; then
-        ln -sf "$TARGET_BASE/bin/serpantinum" "$BIN_DIR/serpantinum"
-        sudo ln -sf "$TARGET_BASE/bin/serpantinum" /usr/local/bin/serpantinum 2>/dev/null || true
+    if [ -f "$TARGET_BASE/bin/hsh" ]; then
+        ln -sf "$TARGET_BASE/bin/hsh" "$BIN_DIR/hsh"
+        sudo ln -sf "$TARGET_BASE/bin/hsh" /usr/local/bin/hsh 2>/dev/null || true
     fi
 
-    if [ -f "$TARGET_BASE/bin/serpantinumd" ]; then
-        ln -sf "$TARGET_BASE/bin/serpantinumd" "$BIN_DIR/serpantinumd"
-        sudo ln -sf "$TARGET_BASE/bin/serpantinumd" /usr/local/bin/serpantinumd 2>/dev/null || true
+    if [ -f "$TARGET_BASE/bin/hshd" ]; then
+        ln -sf "$TARGET_BASE/bin/hshd" "$BIN_DIR/hshd"
+        sudo ln -sf "$TARGET_BASE/bin/hshd" /usr/local/bin/hshd 2>/dev/null || true
     fi
 }

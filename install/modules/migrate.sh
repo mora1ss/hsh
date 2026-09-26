@@ -32,13 +32,45 @@ backup_compositors() {
     done
 }
 
+migrate_one_path() {
+    local src="$1"
+    local dst="$2"
+    if [ -e "$src" ] && [ ! -e "$dst" ]; then
+        mkdir -p "$(dirname "$dst")"
+        mv "$src" "$dst"
+    fi
+}
+
+remove_old_bin_link() {
+    local path="$1"
+    if [ -L "$path" ]; then
+        rm -f "$path" 2>/dev/null || sudo rm -f "$path" 2>/dev/null || true
+    fi
+}
+
+migrate_brand_paths() {
+    local cache="${XDG_CACHE_HOME:-$HOME/.cache}"
+
+    migrate_one_path "$HOME/.config/serpantinum" "$HOME/.config/hsh"
+    migrate_one_path "$HOME/.local/share/serpantinum" "$HOME/.local/share/hsh"
+    migrate_one_path "$HOME/.local/state/serpantinum" "$HOME/.local/state/hsh"
+    migrate_one_path "$HOME/.cache/serpantinum" "$HOME/.cache/hsh"
+    migrate_one_path "$cache/serpantinum-wallpapers" "$cache/hsh-wallpapers"
+    migrate_one_path "$cache/serpantinum-installer" "$cache/hsh-installer"
+
+    remove_old_bin_link "$HOME/.local/bin/serpantinum"
+    remove_old_bin_link "$HOME/.local/bin/serpantinumd"
+    remove_old_bin_link "/usr/local/bin/serpantinum"
+    remove_old_bin_link "/usr/local/bin/serpantinumd"
+}
+
 migrate_legacy() {
     local compositors=("$@")
     pkill -f "settings_watcher.sh" 2>/dev/null || true
     pkill -f "hypr/scripts/quickshell" 2>/dev/null || true
 
     if pacman -Qq quickshell-git &>/dev/null; then
-        yay -R --noconfirm quickshell-git 2>/dev/null || sudo pacman -Rdd --noconfirm quickshell-git 2>/dev/null || true
+        paru -R --noconfirm quickshell-git 2>/dev/null || sudo pacman -Rdd --noconfirm quickshell-git 2>/dev/null || true
     fi
 
     backup_compositors "${compositors[@]}"

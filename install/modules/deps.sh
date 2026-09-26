@@ -55,6 +55,7 @@ REQUIRED_PKGS=(
     "ffmpeg" "fastfetch" "quickshell" "unzip" "python-websockets" "qt6-websockets"
     "grim" "playerctl" "satty" "xdg-desktop-portal-gtk" "slurp" "wmctrl" "power-profiles-daemon" "easyeffects" "nautilus" "qt5-wayland" "qt5-quickcontrols" "qt5-quickcontrols2" "qt5-graphicaleffects" "qt6-wayland"
     "qt5ct" "qt6ct" "gpu-screen-recorder" "wf-recorder" "adw-gtk-theme" "wl-gammarelay-rs"
+    "xdg-user-dirs" "vscodium" "brave-bin"
 )
 
 FAILED_PKGS=()
@@ -112,11 +113,11 @@ bootstrap_installer_deps() {
         sudo pacman -Sy --noconfirm --needed "${missing[@]}"
     fi
 
-    if ! command -v yay &>/dev/null && ! command -v paru &>/dev/null; then
-        local cache_build="${XDG_CACHE_HOME:-"$HOME/.cache"}/serpantinum-yay-bin"
+    if ! command -v paru &>/dev/null; then
+        local cache_build="${XDG_CACHE_HOME:-"$HOME/.cache"}/hsh-paru-bin"
         rm -rf "$cache_build"
         mkdir -p "$cache_build"
-        git clone https://aur.archlinux.org/yay-bin.git "$cache_build"
+        git clone https://aur.archlinux.org/paru-bin.git "$cache_build"
         (cd "$cache_build" && makepkg -si --noconfirm)
         rm -rf "$cache_build"
     fi
@@ -128,19 +129,17 @@ install_pkg() {
 
     if pacman -Si "$pkg" &>/dev/null; then
         sudo pacman -S --noconfirm --needed "$pkg"
-    elif command -v yay &>/dev/null; then
-        env CARGO_BUILD_JOBS="$safe_jobs" MAKEFLAGS="-j$safe_jobs" yay -S --noconfirm --needed "$pkg"
     elif command -v paru &>/dev/null; then
         env CARGO_BUILD_JOBS="$safe_jobs" MAKEFLAGS="-j$safe_jobs" paru -S --noconfirm --needed "$pkg"
     else
-        sudo pacman -S --noconfirm --needed "$pkg"
+        return 1
     fi
 }
 
 install_fonts() {
     local target_fonts_dir="$HOME/.local/share/fonts/IosevkaNerdFont"
     if [ ! -d "$target_fonts_dir" ] || [ -z "$(ls -A "$target_fonts_dir" 2>/dev/null | grep -i "\.ttf")" ]; then
-        local font_cache="${XDG_CACHE_HOME:-"$HOME/.cache"}/serpantinum-fonts"
+        local font_cache="${XDG_CACHE_HOME:-"$HOME/.cache"}/hsh-fonts"
         mkdir -p "$font_cache" "$target_fonts_dir"
         echo -e "\n\e[36m[ INFO ]\e[0m Downloading Iosevka Nerd Font..."
         if curl -# -L --connect-timeout 15 --retry 3 "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Iosevka.zip" -o "$font_cache/Iosevka.zip"; then
@@ -173,7 +172,7 @@ install_dependencies() {
     local compositors=("$@")
 
     if pacman -Qq quickshell-git &>/dev/null; then
-        yay -R --noconfirm quickshell-git 2>/dev/null || sudo pacman -Rdd --noconfirm quickshell-git 2>/dev/null || true
+        paru -R --noconfirm quickshell-git 2>/dev/null || sudo pacman -Rdd --noconfirm quickshell-git 2>/dev/null || true
     fi
 
     local target_list=("${REQUIRED_PKGS[@]}")

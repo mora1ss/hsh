@@ -5,9 +5,9 @@ set -e
 setterm -blank 0 -powerdown 0 2>/dev/null || true
 printf '\033[9;0]' 2>/dev/null || true
 
-RAW_SLUG="${REPO_SLUG:-ilyamiro/serpantinum}"
+RAW_SLUG="${REPO_SLUG:-mora1ss/hsh}"
 REPO_SLUG="$(printf '%s' "$RAW_SLUG" | tr -d '\r\n\t ' | sed 's/[^a-zA-Z0-9_\/-]//g')"
-CACHE_BASE="${XDG_CACHE_HOME:-$HOME/.cache}/serpantinum-installer"
+CACHE_BASE="${XDG_CACHE_HOME:-$HOME/.cache}/hsh-installer"
 export REPO_SLUG
 
 if [ -n "${BASH_SOURCE[0]}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
@@ -33,7 +33,7 @@ if [[ -z "$PROJECT_ROOT" || ! -f "$PROJECT_ROOT/install/modules/deps.sh" || ! -d
     PROJECT_ROOT="$CACHE_BASE"
 fi
 
-export SERPANTINUM_DIR="$PROJECT_ROOT/src"
+export HSH_DIR="$PROJECT_ROOT/src"
 export I18N_DIR="$PROJECT_ROOT/src/assets/languages"
 
 MODULES_DIR="$INSTALL_DIR/modules"
@@ -48,27 +48,20 @@ source "$MODULES_DIR/config.sh"
 source "$MODULES_DIR/service.sh"
 source "$MODULES_DIR/ui.sh"
 
-TELEMETRY_ID=$(get_telemetry_id)
-ENABLE_TELEMETRY=$(get_telemetry_enabled)
-
 check_supported_os
 bootstrap_installer_deps
 
 INSTALL_STATE=$(detect_install_state)
-OLD_VERSION=$(get_installed_version)
 TARGET_VERSION=$(get_target_version "$PROJECT_ROOT" "$REPO_SLUG")
 TARGET_COMMIT=$(get_target_commit "$PROJECT_ROOT" "$REPO_SLUG")
-OLD_COMMIT=$(get_installed_commit)
 
 init_compositor_detection
 run_installer_ui
 
+migrate_brand_paths
+OLD_COMMIT=$(get_installed_commit)
 TARGET_VERSION=$(get_target_version "$PROJECT_ROOT" "$REPO_SLUG")
 TARGET_COMMIT=$(get_target_commit "$PROJECT_ROOT" "$REPO_SLUG")
-
-if [ "$ENABLE_TELEMETRY" = true ] && [ -f "$MODULES_DIR/telemetry.sh" ]; then
-    bash "$MODULES_DIR/telemetry.sh" --mode init --version "$TARGET_VERSION" --id "$TELEMETRY_ID" --enabled "$ENABLE_TELEMETRY"
-fi
 
 if [[ "$INSTALL_STATE" == "legacy" ]]; then
     migrate_legacy "${SELECTED_COMPOSITORS[@]}"
@@ -78,22 +71,22 @@ fi
 
 install_dependencies "$INSTALL_STATE" "$IS_REINSTALL" "${SELECTED_COMPOSITORS[@]}"
 
+if command -v xdg-user-dirs-update &>/dev/null; then
+    xdg-user-dirs-update || true
+fi
+
 deploy_package "$PROJECT_ROOT" "$OLD_COMMIT" "$TARGET_COMMIT" "$IS_REINSTALL" "$INSTALL_STATE" "${SELECTED_COMPOSITORS[@]}"
 setup_sddm "$PROJECT_ROOT" "$INSTALL_STATE" "$IS_REINSTALL"
 install_wallpapers "$INSTALL_FULL_WALLPAPERS"
 
 WALLPAPER_DIR=$(get_wallpaper_dir)
-init_serpantinum_config "$PROJECT_ROOT" "$WALLPAPER_DIR" "$INSTALL_STATE" "$IS_REINSTALL"
+init_hsh_config "$PROJECT_ROOT" "$WALLPAPER_DIR" "$INSTALL_STATE" "$IS_REINSTALL"
 
 setup_services
-write_version_state "$TARGET_VERSION" "$TARGET_COMMIT" "$TELEMETRY_ID" "$ENABLE_TELEMETRY" "${SELECTED_COMPOSITORS[*]}"
+write_version_state "$TARGET_VERSION" "$TARGET_COMMIT" "${SELECTED_COMPOSITORS[*]}"
 
 if [[ "$INSTALL_STATE" == "legacy" || "$INSTALL_STATE" == "fresh" || "$IS_REINSTALL" == true ]]; then
-    rm -f "$HOME/.local/state/serpantinum/first_launch.done" "$HOME/.local/state/quickshell/first_launch.done"
-fi
-
-if [ -f "$MODULES_DIR/telemetry.sh" ]; then
-    bash "$MODULES_DIR/telemetry.sh" --mode done --version "$TARGET_VERSION" --old-version "$OLD_VERSION" --install-state "$INSTALL_STATE" --compositor "${SELECTED_COMPOSITORS[*]}" --id "$TELEMETRY_ID" --enabled "$ENABLE_TELEMETRY" --failed "${FAILED_PKGS[*]}"
+    rm -f "$HOME/.local/state/hsh/first_launch.done" "$HOME/.local/state/quickshell/first_launch.done"
 fi
 
 draw_completion_screen "$TARGET_VERSION" "$TARGET_COMMIT"
