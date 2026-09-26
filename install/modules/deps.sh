@@ -55,7 +55,7 @@ REQUIRED_PKGS=(
     "ffmpeg" "fastfetch" "quickshell" "unzip" "python-websockets" "qt6-websockets"
     "grim" "playerctl" "satty" "xdg-desktop-portal-gtk" "slurp" "wmctrl" "power-profiles-daemon" "easyeffects" "nautilus" "qt5-wayland" "qt5-quickcontrols" "qt5-quickcontrols2" "qt5-graphicaleffects" "qt6-wayland"
     "qt5ct" "qt6ct" "gpu-screen-recorder" "wf-recorder" "adw-gtk-theme" "wl-gammarelay-rs"
-    "xdg-user-dirs" "vscodium" "brave-bin" "qt6-svg" "gtk-update-icon-cache"
+    "xdg-user-dirs" "vscodium-bin" "brave-bin" "qt6-svg" "gtk-update-icon-cache"
 )
 
 FAILED_PKGS=()
@@ -115,17 +115,25 @@ bootstrap_installer_deps() {
 
     if ! command -v paru &>/dev/null; then
         echo -e "\n\e[36m[ INFO ]\e[0m Building paru from source..."
-        sudo pacman -S --noconfirm --needed rust
         local cache_build="${XDG_CACHE_HOME:-"$HOME/.cache"}/hsh-paru"
         local safe_jobs=$(( $(nproc) / 2 ))
         [[ $safe_jobs -lt 1 ]] && safe_jobs=1
         [[ $safe_jobs -gt 4 ]] && safe_jobs=4
+        local makepkg_deps=()
+        if command -v rustc &>/dev/null && command -v cargo &>/dev/null; then
+            makepkg_deps=(--nodeps)
+        elif pacman -Qq rustup &>/dev/null; then
+            rustup default stable
+            makepkg_deps=(--nodeps)
+        else
+            sudo pacman -S --noconfirm --needed rust
+        fi
         rm -rf "$cache_build"
         mkdir -p "$cache_build"
         git clone https://aur.archlinux.org/paru.git "$cache_build"
         (
             cd "$cache_build"
-            env CARGO_BUILD_JOBS="$safe_jobs" MAKEFLAGS="-j$safe_jobs" makepkg -si --noconfirm
+            env CARGO_BUILD_JOBS="$safe_jobs" MAKEFLAGS="-j$safe_jobs" makepkg -si --noconfirm "${makepkg_deps[@]}"
         )
         rm -rf "$cache_build"
     fi
