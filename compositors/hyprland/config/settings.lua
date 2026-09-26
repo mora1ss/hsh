@@ -52,3 +52,9 @@ hl.animation({ leaf = "fade", enabled = true, speed = 5, bezier = "myBezier" })
 hl.animation({ leaf = "workspaces", enabled = true, speed = 5, bezier = "myBezier", style = "slide" })
 hl.animation({ leaf = "specialWorkspaceIn", enabled = true, speed = 5, bezier = "myBezier", style = "fade" })
 hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = 5, bezier = "myBezier", style = "fade" })
+
+hl.window_rule({
+  name = "suppress-maximize-events",
+  match = { class = ".*" },
+  suppress_event = "maximize",
+})

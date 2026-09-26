@@ -27,7 +27,7 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("hsh brightness lower"), { lock
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("hsh brightness raise"), { locked = true })
 
 hl.bind("Print", hl.dsp.exec_cmd("hsh screenshot"), { locked = true })
-hl.bind("SHIFT + Print", hl.dsp.exec_cmd("hsh screenshot --edit"), { locked = true })
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd("hsh screenshot --edit"), { locked = true })
 hl.bind("SUPER + Print", hl.dsp.exec_cmd("hsh screenshot --full"), { locked = true })
 hl.bind("SUPER + SHIFT + Print", hl.dsp.exec_cmd("hsh screenshot --full --edit"), { locked = true })
 
@@ -44,7 +44,7 @@ hl.bind("XF86AudioMute", hl.dsp.exec_cmd("hsh volume mute-toggle"), { locked = t
 hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("hsh volume lower"), { repeating = true, locked = true })
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("hsh volume raise"), { repeating = true, locked = true })
 
-hl.bind(mainMod .. " + F", hl.dsp.exec_cmd("firefox"))
+hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ action = "toggle", mode = "maximized" }))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("nautilus"))
 hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal))
 
