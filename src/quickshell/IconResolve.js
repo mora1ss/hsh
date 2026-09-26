@@ -8,7 +8,7 @@ function candidates(ic, qs, home) {
 
     var baseName = ic.replace(/\.(png|svg|xpm|ico)$/i, "");
     if (qs && typeof qs.iconPath === "function") {
-        var resolved = qs.iconPath(ic) || qs.iconPath(baseName);
+        var resolved = qs.iconPath(ic, true) || qs.iconPath(baseName, true);
         if (resolved && resolved.length > 0) {
             return [resolved.startsWith("/") ? ("file://" + resolved) : resolved];
         }
