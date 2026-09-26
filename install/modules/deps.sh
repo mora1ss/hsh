@@ -114,11 +114,19 @@ bootstrap_installer_deps() {
     fi
 
     if ! command -v paru &>/dev/null; then
-        local cache_build="${XDG_CACHE_HOME:-"$HOME/.cache"}/hsh-paru-bin"
+        echo -e "\n\e[36m[ INFO ]\e[0m Building paru from source..."
+        sudo pacman -S --noconfirm --needed rust
+        local cache_build="${XDG_CACHE_HOME:-"$HOME/.cache"}/hsh-paru"
+        local safe_jobs=$(( $(nproc) / 2 ))
+        [[ $safe_jobs -lt 1 ]] && safe_jobs=1
+        [[ $safe_jobs -gt 4 ]] && safe_jobs=4
         rm -rf "$cache_build"
         mkdir -p "$cache_build"
-        git clone https://aur.archlinux.org/paru-bin.git "$cache_build"
-        (cd "$cache_build" && makepkg -si --noconfirm)
+        git clone https://aur.archlinux.org/paru.git "$cache_build"
+        (
+            cd "$cache_build"
+            env CARGO_BUILD_JOBS="$safe_jobs" MAKEFLAGS="-j$safe_jobs" makepkg -si --noconfirm
+        )
         rm -rf "$cache_build"
     fi
 }
