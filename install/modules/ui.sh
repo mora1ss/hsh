@@ -157,7 +157,7 @@ show_package_overview() {
         target_list+=("$comp")
     done
     if [ "$OPT_SDDM" = true ]; then
-        target_list+=("sddm" "qt6-declarative" "qt6-svg")
+        target_list+=("sddm" "qt6-declarative")
     fi
 
     local missing_raw

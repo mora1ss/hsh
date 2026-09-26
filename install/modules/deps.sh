@@ -55,7 +55,7 @@ REQUIRED_PKGS=(
     "ffmpeg" "fastfetch" "quickshell" "unzip" "python-websockets" "qt6-websockets"
     "grim" "playerctl" "satty" "xdg-desktop-portal-gtk" "slurp" "wmctrl" "power-profiles-daemon" "easyeffects" "nautilus" "qt5-wayland" "qt5-quickcontrols" "qt5-quickcontrols2" "qt5-graphicaleffects" "qt6-wayland"
     "qt5ct" "qt6ct" "gpu-screen-recorder" "wf-recorder" "adw-gtk-theme" "wl-gammarelay-rs"
-    "xdg-user-dirs" "vscodium" "brave-bin"
+    "xdg-user-dirs" "vscodium" "brave-bin" "qt6-svg" "gtk-update-icon-cache"
 )
 
 FAILED_PKGS=()
@@ -189,7 +189,7 @@ install_dependencies() {
     done
 
     if [ "$OPT_SDDM" = true ]; then
-        target_list+=("sddm" "qt6-declarative" "qt6-svg")
+        target_list+=("sddm" "qt6-declarative")
     fi
 
     if [[ ("$install_state" == "fresh" || "$install_state" == "legacy") && "$is_reinstall" != "true" ]]; then
@@ -233,4 +233,11 @@ install_dependencies() {
     fi
 
     install_fonts
+    refresh_icon_cache
+}
+
+refresh_icon_cache() {
+    if command -v gtk-update-icon-cache &>/dev/null && [ -f /usr/share/icons/hicolor/index.theme ]; then
+        sudo gtk-update-icon-cache -f /usr/share/icons/hicolor >/dev/null 2>&1 || true
+    fi
 }

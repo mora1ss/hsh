@@ -8,6 +8,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import "../"
 import "../reusables"
+import "../IconResolve.js" as IconResolve
 
 Variants {
     model: Quickshell.screens
@@ -1689,19 +1690,22 @@ Variants {
                                                     smooth: true
                                                     mipmap: true
                                                     property bool failedLoad: false
+                                                    property string watchedIcon: model.icon || ""
+                                                    property var iconCandidates: IconResolve.candidates(watchedIcon, typeof Quickshell !== "undefined" ? Quickshell : null, (typeof Quickshell !== "undefined" && Quickshell.env) ? (Quickshell.env("HOME") || "") : "")
+                                                    property int iconTry: 0
 
                                                     visible: source !== "" && status === Image.Ready && !failedLoad
 
-                                                    source: {
-                                                        let ic = model.icon || "";
-                                                        if (!ic) return "";
-                                                        if (ic.startsWith("file://") || ic.startsWith("image://") || ic.startsWith("http://") || ic.startsWith("https://")) return ic;
-                                                        return ic.startsWith("/") ? "file://" + ic : "image://icon/" + ic;
-                                                    }
+                                                    source: iconCandidates.length > iconTry ? iconCandidates[iconTry] : ""
+
+                                                    onWatchedIconChanged: iconTry = 0
 
                                                     onStatusChanged: {
-                                                        if (status === Image.Error) {
-                                                            failedLoad = true;
+                                                        if (status === Image.Ready) {
+                                                            failedLoad = false;
+                                                        } else if (status === Image.Error) {
+                                                            if (iconTry + 1 < iconCandidates.length) iconTry++;
+                                                            else failedLoad = true;
                                                         }
                                                     }
                                                 }
@@ -2046,18 +2050,23 @@ Variants {
                                                     smooth: true
                                                     mipmap: true
                                                     property bool failedLoad: false
+                                                    property string watchedIcon: pickerDelegate.resolvedItem.icon || ""
+                                                    property var iconCandidates: IconResolve.candidates(watchedIcon, typeof Quickshell !== "undefined" ? Quickshell : null, (typeof Quickshell !== "undefined" && Quickshell.env) ? (Quickshell.env("HOME") || "") : "")
+                                                    property int iconTry: 0
 
                                                     visible: source !== "" && status === Image.Ready && !failedLoad
 
-                                                    source: {
-                                                        let ic = pickerDelegate.resolvedItem.icon || "";
-                                                        if (!ic) return "";
-                                                        if (ic.startsWith("file://") || ic.startsWith("image://") || ic.startsWith("http://") || ic.startsWith("https://")) return ic;
-                                                        return ic.startsWith("/") ? "file://" + ic : "image://icon/" + ic;
-                                                    }
+                                                    source: iconCandidates.length > iconTry ? iconCandidates[iconTry] : ""
+
+                                                    onWatchedIconChanged: iconTry = 0
 
                                                     onStatusChanged: {
-                                                        if (status === Image.Error) failedLoad = true;
+                                                        if (status === Image.Ready) {
+                                                            failedLoad = false;
+                                                        } else if (status === Image.Error) {
+                                                            if (iconTry + 1 < iconCandidates.length) iconTry++;
+                                                            else failedLoad = true;
+                                                        }
                                                     }
                                                 }
 

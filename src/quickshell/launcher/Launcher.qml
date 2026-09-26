@@ -10,6 +10,7 @@ import Quickshell.Io
 import "../"
 import "../reusables"
 import "../WindowRegistry.js" as WindowRegistry
+import "../IconResolve.js" as IconResolve
 
 PanelWindow {
     id: launcherWindow
@@ -1652,27 +1653,14 @@ PanelWindow {
                                                 id: delegateIcon
                                                 anchors.fill: parent
                                                 property bool failedLoad: false
+                                                property string watchedIcon: (model.fontIcon && model.fontIcon !== "") ? "" : (model.icon || "")
+                                                property var iconCandidates: IconResolve.candidates(watchedIcon, typeof Quickshell !== "undefined" ? Quickshell : null, (typeof Quickshell !== "undefined" && Quickshell.env) ? (Quickshell.env("HOME") || "") : "")
+                                                property int iconTry: 0
                                                 cache: false
 
                                                 visible: (!model.fontIcon || model.fontIcon === "") && source !== "" && status === Image.Ready && !failedLoad
 
-                                                source: {
-                                                    if (model.fontIcon && model.fontIcon !== "") return "";
-                                                    let ic = model.icon || "";
-                                                    if (!ic) return "";
-                                                    if (ic.startsWith("file://") || ic.startsWith("image://") || ic.startsWith("http://") || ic.startsWith("https://")) return ic;
-                                                    if (ic.startsWith("/")) return "file://" + ic;
-
-                                                    let baseName = ic.replace(/\.(png|svg|xpm|ico)$/i, "");
-                                                    if (typeof Quickshell !== "undefined" && typeof Quickshell.iconPath === "function") {
-                                                        let resolved = Quickshell.iconPath(ic) || Quickshell.iconPath(baseName);
-                                                        if (resolved && resolved.length > 0) {
-                                                            return resolved.startsWith("/") ? ("file://" + resolved) : resolved;
-                                                        }
-                                                    }
-
-                                                    return "image://icon/" + baseName;
-                                                }
+                                                source: iconCandidates.length > iconTry ? iconCandidates[iconTry] : ""
 
                                                 sourceSize: Qt.size(64, 64)
                                                 fillMode: Image.PreserveAspectFit
@@ -1680,9 +1668,14 @@ PanelWindow {
                                                 smooth: true
                                                 mipmap: true
 
+                                                onWatchedIconChanged: iconTry = 0
+
                                                 onStatusChanged: {
-                                                    if (status === Image.Error) {
-                                                        failedLoad = true;
+                                                    if (status === Image.Ready) {
+                                                        failedLoad = false;
+                                                    } else if (status === Image.Error) {
+                                                        if (iconTry + 1 < iconCandidates.length) iconTry++;
+                                                        else failedLoad = true;
                                                     }
                                                 }
                                             }
